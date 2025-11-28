@@ -1,0 +1,330 @@
+{
+  "info": {
+    "name": "BAPP System API",
+    "description": "API untuk Berita Acara Pemeriksaan Pekerjaan (BAPP)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12345679"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5001/api",
+      "type": "default"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "bapp_id",
+      "value": "",
+      "type": "default"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register Vendor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"vendor.bapp@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"PT Kontraktor Bangunan\",\n  \"role\": \"vendor\",\n  \"phone\": \"081234567892\",\n  \"company\": \"PT Kontraktor Bangunan Sejahtera\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register vendor untuk BAPP (kontraktor/jasa)"
+          },
+          "response": []
+        },
+        {
+          "name": "Register Direksi Pekerjaan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"direksi@accenture.com\",\n  \"password\": \"password123\",\n  \"name\": \"Ir. Ahmad Wijaya, MT\",\n  \"role\": \"approver\",\n  \"phone\": \"081234567893\",\n  \"company\": \"Accenture Indonesia\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register Direksi Pekerjaan untuk approval BAPP"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('token', jsonData.data.token);",
+                  "        pm.test('Token saved successfully', function() {",
+                  "            pm.expect(pm.collectionVariables.get('token')).to.not.be.empty;",
+                  "        });",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"vendor.bapp@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login untuk BAPP system"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Get user profile information"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "BAPP Management",
+      "item": [
+        {
+          "name": "Create BAPP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('bapp_id', jsonData.data.id);",
+                  "        pm.test('BAPP ID saved', function() {",
+                  "            pm.expect(pm.collectionVariables.get('bapp_id')).to.not.be.empty;",
+                  "        });",
+                  "    }",
+                  "    pm.test('BAPP created successfully', function() {",
+                  "        pm.response.to.have.status(201);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contractNumber\": \"SPK-2024-001\",\n  \"projectName\": \"Pembangunan Gedung Kantor Cabang Surabaya\",\n  \"projectLocation\": \"Jl. HR Muhammad No. 100, Surabaya\",\n  \"startDate\": \"2024-01-15\",\n  \"endDate\": \"2024-12-31\",\n  \"completionDate\": \"2024-11-20\",\n  \"notes\": \"Progress sesuai timeline, quality control passed\",\n  \"workItems\": [\n    {\n      \"workItemName\": \"Pekerjaan Pondasi\",\n      \"description\": \"Pembuatan pondasi tiang pancang 20 titik\",\n      \"plannedProgress\": 100,\n      \"actualProgress\": 100,\n      \"unit\": \"paket\",\n      \"quality\": \"excellent\",\n      \"deliverables\": \"Pondasi 20 titik selesai, As-built drawing, Test report\",\n      \"notes\": \"Selesai tepat waktu, quality excellent\"\n    },\n    {\n      \"workItemName\": \"Pekerjaan Struktur Beton\",\n      \"description\": \"Pengecoran kolom dan balok lantai 1-3\",\n      \"plannedProgress\": 75,\n      \"actualProgress\": 80,\n      \"unit\": \"paket\",\n      \"quality\": \"good\",\n      \"deliverables\": \"Struktur beton lantai 1-3, Test cube beton, Dokumentasi foto\",\n      \"notes\": \"Progress ahead of schedule 5%\"\n    },\n    {\n      \"workItemName\": \"Pekerjaan Arsitektur\",\n      \"description\": \"Pemasangan dinding, plafon, dan finishing\",\n      \"plannedProgress\": 50,\n      \"actualProgress\": 45,\n      \"unit\": \"paket\",\n      \"quality\": \"good\",\n      \"deliverables\": \"Dinding partisi, Plafon gypsum, Cat dasar\",\n      \"notes\": \"Slight delay 5% karena cuaca hujan\"\n    },\n    {\n      \"workItemName\": \"Pekerjaan MEP\",\n      \"description\": \"Instalasi listrik, plumbing, AC\",\n      \"plannedProgress\": 30,\n      \"actualProgress\": 35,\n      \"unit\": \"paket\",\n      \"quality\": \"excellent\",\n      \"deliverables\": \"Instalasi kabel listrik, Pipa air bersih/kotor\",\n      \"notes\": \"Progress baik, testing awal passed\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bapp",
+              "host": ["{{base_url}}"],
+              "path": ["bapp"]
+            },
+            "description": "Buat BAPP baru dengan work items"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All BAPP",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bapp?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["bapp"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "draft",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get list semua BAPP dengan pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Get BAPP Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bapp/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["bapp", "statistics"]
+            },
+            "description": "Get statistik BAPP (total, draft, submitted, approved, rejected)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get BAPP by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bapp/{{bapp_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["bapp", "{{bapp_id}}"]
+            },
+            "description": "Get detail BAPP by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update BAPP",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contractNumber\": \"SPK-2024-001-REV\",\n  \"projectName\": \"Pembangunan Gedung Kantor Cabang Surabaya (Revised)\",\n  \"projectLocation\": \"Jl. HR Muhammad No. 100, Surabaya\",\n  \"startDate\": \"2024-01-15\",\n  \"endDate\": \"2025-01-15\",\n  \"notes\": \"Extension approved\",\n  \"workItems\": [\n    {\n      \"workItemName\": \"Pekerjaan Pondasi\",\n      \"description\": \"Pembuatan pondasi tiang pancang\",\n      \"plannedProgress\": 100,\n      \"actualProgress\": 100,\n      \"unit\": \"paket\",\n      \"quality\": \"excellent\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bapp/{{bapp_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["bapp", "{{bapp_id}}"]
+            },
+            "description": "Update BAPP yang sudah ada"
+          },
+          "response": []
+        },
+        {
+          "name": "Submit BAPP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bapp/{{bapp_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["bapp", "{{bapp_id}}", "submit"]
+            },
+            "description": "Submit BAPP untuk approval"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete BAPP",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bapp/{{bapp_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["bapp", "{{bapp_id}}"]
+            },
+            "description": "Delete BAPP by ID"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
